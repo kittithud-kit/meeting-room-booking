@@ -27,7 +27,7 @@ export default function LoginScreen({ onLogin }) {
           </svg>
         </div>
         <h1>เข้าสู่ระบบ</h1>
-        <p className="login-sub">ระบบจองห้องประชุม โรงเรียนสาธิตแห่งอนาคต</p>
+        <p className="login-sub">ระบบจองห้องประชุม โรงเรียน...</p>
 
         <button type="button" className="btn oauth-btn" onClick={onLogin}>
           <span className="dot-icon dot-google" aria-hidden="true" />

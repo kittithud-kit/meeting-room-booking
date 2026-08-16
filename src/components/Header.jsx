@@ -9,7 +9,7 @@ export default function Header({ user, onLogout }) {
     <div className="topbar">
       <div>
         <p className="eyebrow">ระบบจองห้องประชุม</p>
-        <h1>โรงเรียนสาธิตแห่งอนาคต</h1>
+        <h1>โรงเรียน...</h1>
       </div>
       <div className="user-chip">
         <div className="avatar">{initialsOf(user.name)}</div>
