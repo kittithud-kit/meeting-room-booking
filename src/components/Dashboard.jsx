@@ -1,0 +1,57 @@
+import { useState } from "react";
+import Header from "./Header.jsx";
+import RoomCard from "./RoomCard.jsx";
+import Timeline from "./Timeline.jsx";
+import MyBookings from "./MyBookings.jsx";
+import BookingModal from "./BookingModal.jsx";
+
+export default function Dashboard({ user, rooms, bookings, onLogout, onAddBooking, onCancelBooking }) {
+  const [modalRoomId, setModalRoomId] = useState(null); // null when closed, "" or roomId when open
+  const isModalOpen = modalRoomId !== null;
+
+  function openModal(roomId = "") {
+    setModalRoomId(roomId);
+  }
+
+  function closeModal() {
+    setModalRoomId(null);
+  }
+
+  function handleSubmitBooking(booking) {
+    onAddBooking(booking);
+    closeModal();
+  }
+
+  return (
+    <div className="app-shell">
+      <Header user={user} onLogout={onLogout} />
+
+      <div className="actions-row">
+        <button type="button" className="btn primary" onClick={() => openModal("")}>
+          + จองห้องใหม่
+        </button>
+      </div>
+
+      <div className="room-grid">
+        {rooms.map((room) => (
+          <RoomCard key={room.id} room={room} bookings={bookings} onBook={openModal} />
+        ))}
+      </div>
+
+      <Timeline rooms={rooms} bookings={bookings} />
+
+      <MyBookings bookings={bookings} rooms={rooms} userId={user.id} onCancel={onCancelBooking} />
+
+      {isModalOpen && (
+        <BookingModal
+          rooms={rooms}
+          bookings={bookings}
+          user={user}
+          initialRoomId={modalRoomId}
+          onClose={closeModal}
+          onSubmit={handleSubmitBooking}
+        />
+      )}
+    </div>
+  );
+}
