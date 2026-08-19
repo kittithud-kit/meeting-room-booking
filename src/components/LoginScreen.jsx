@@ -1,18 +1,55 @@
 import { useState } from "react";
 
-export default function LoginScreen({ onLogin }) {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+const SCHOOL_LINE_ID = "@school.booking";
 
-  function handlePasswordLogin(e) {
+export default function LoginScreen({ onStudentLogin, onStudentRegister }) {
+  const [mode, setMode] = useState("login"); // "login" | "register"
+  const [studentId, setStudentId] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [showForgotModal, setShowForgotModal] = useState(false);
+
+  function switchMode(nextMode) {
+    setMode(nextMode);
+    setError("");
+    setPassword("");
+    setConfirmPassword("");
+  }
+
+  async function handleLoginSubmit(e) {
     e.preventDefault();
-    if (!username.trim() || !password.trim()) {
-      setError("กรอกชื่อผู้ใช้และรหัสผ่านให้ครบก่อนเข้าสู่ระบบ");
+    if (!studentId.trim() || !password) {
+      setError("กรอกรหัสประจำตัวนักเรียนและรหัสผ่านให้ครบ");
       return;
     }
     setError("");
-    onLogin();
+    setSubmitting(true);
+    const loginError = await onStudentLogin(studentId.trim(), password);
+    setSubmitting(false);
+    if (loginError) setError(loginError);
+  }
+
+  async function handleRegisterSubmit(e) {
+    e.preventDefault();
+    if (!studentId.trim() || !password || !confirmPassword) {
+      setError("กรอกข้อมูลให้ครบทุกช่อง");
+      return;
+    }
+    if (password.length < 6) {
+      setError("รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError("รหัสผ่านทั้งสองช่องไม่ตรงกัน");
+      return;
+    }
+    setError("");
+    setSubmitting(true);
+    const registerError = await onStudentRegister(studentId.trim(), password);
+    setSubmitting(false);
+    if (registerError) setError(registerError);
   }
 
   return (
@@ -29,49 +66,124 @@ export default function LoginScreen({ onLogin }) {
         <h1>เข้าสู่ระบบ</h1>
         <p className="login-sub">ระบบจองห้องประชุม โรงเรียน...</p>
 
-        <button type="button" className="btn oauth-btn" onClick={onLogin}>
-          <span className="dot-icon dot-google" aria-hidden="true" />
-          เข้าสู่ระบบด้วยอีเมลโรงเรียน (Google)
-        </button>
-        <button type="button" className="btn oauth-btn" onClick={onLogin}>
-          <span className="dot-icon dot-line" aria-hidden="true" />
-          เข้าสู่ระบบด้วย LINE
-        </button>
-
-        <div className="divider">
-          <hr />
-          <span>หรือ</span>
-          <hr />
-        </div>
-
-        <form onSubmit={handlePasswordLogin} noValidate>
-          <label htmlFor="username">ชื่อผู้ใช้</label>
-          <input
-            id="username"
-            type="text"
-            placeholder="somchai.jaidee"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-
-          <label htmlFor="password">รหัสผ่าน</label>
-          <input
-            id="password"
-            type="password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-
-          {error && <p className="field-error">{error}</p>}
-
-          <button type="submit" className="btn primary login-submit">
+        <div className="auth-mode-tabs">
+          <button
+            type="button"
+            className={`auth-mode-tab ${mode === "login" ? "active" : ""}`}
+            onClick={() => switchMode("login")}
+          >
             เข้าสู่ระบบ
           </button>
-        </form>
+          <button
+            type="button"
+            className={`auth-mode-tab ${mode === "register" ? "active" : ""}`}
+            onClick={() => switchMode("register")}
+          >
+            ตั้งรหัสผ่านครั้งแรก
+          </button>
+        </div>
+
+        {mode === "login" ? (
+          <form onSubmit={handleLoginSubmit} noValidate>
+            <label htmlFor="studentId">รหัสประจำตัวนักเรียน</label>
+            <input
+              id="studentId"
+              type="text"
+              placeholder="เช่น 66001"
+              value={studentId}
+              onChange={(e) => setStudentId(e.target.value)}
+            />
+
+            <label htmlFor="password">รหัสผ่าน</label>
+            <input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+
+            {error && <p className="field-error">{error}</p>}
+
+            <button type="submit" className="btn primary login-submit" disabled={submitting}>
+              {submitting ? "กำลังตรวจสอบ..." : "เข้าสู่ระบบ"}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleRegisterSubmit} noValidate>
+            <label htmlFor="regStudentId">รหัสประจำตัวนักเรียน</label>
+            <input
+              id="regStudentId"
+              type="text"
+              placeholder="เช่น 66001"
+              value={studentId}
+              onChange={(e) => setStudentId(e.target.value)}
+            />
+
+            <label htmlFor="regPassword">ตั้งรหัสผ่าน</label>
+            <input
+              id="regPassword"
+              type="password"
+              placeholder="อย่างน้อย 6 ตัวอักษร"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+
+            <label htmlFor="regConfirmPassword">ยืนยันรหัสผ่าน</label>
+            <input
+              id="regConfirmPassword"
+              type="password"
+              placeholder="••••••••"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+
+            {error && <p className="field-error">{error}</p>}
+
+            <button type="submit" className="btn primary login-submit" disabled={submitting}>
+              {submitting ? "กำลังตั้งค่า..." : "ตั้งรหัสผ่านและเข้าสู่ระบบ"}
+            </button>
+          </form>
+        )}
+
+        {mode === "login" && (
+          <button type="button" className="forgot-password-link" onClick={() => setShowForgotModal(true)}>
+            ลืมรหัสผ่าน?
+          </button>
+        )}
 
         <p className="login-footnote">บัญชีสร้างโดยแอดมินโรงเรียนเท่านั้น</p>
       </div>
+
+      {showForgotModal && (
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="forgot-modal-title">
+          <div className="card modal forgot-modal">
+            <div className="modal-head">
+              <h2 id="forgot-modal-title">ลืมรหัสผ่าน</h2>
+              <button
+                type="button"
+                className="modal-close"
+                aria-label="ปิด"
+                onClick={() => setShowForgotModal(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <p className="modal-sub">
+              ติดต่อแอดมินโรงเรียนผ่าน LINE เพื่อขอรีเซ็ตรหัสผ่าน
+            </p>
+            <div className="forgot-line-id">
+              <span className="dot-icon dot-line" aria-hidden="true" />
+              {SCHOOL_LINE_ID}
+            </div>
+            <div className="modal-actions">
+              <button type="button" className="btn primary" onClick={() => setShowForgotModal(false)}>
+                ปิด
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
