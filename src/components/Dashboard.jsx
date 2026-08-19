@@ -17,8 +17,8 @@ export default function Dashboard({ user, rooms, bookings, onLogout, onAddBookin
     setModalRoomId(null);
   }
 
-  function handleSubmitBooking(booking) {
-    onAddBooking(booking);
+  async function handleSubmitBooking(booking) {
+    await onAddBooking(booking);
     closeModal();
   }
 

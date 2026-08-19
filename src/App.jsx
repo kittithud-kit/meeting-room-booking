@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import LoginScreen from "./components/LoginScreen.jsx";
 import Dashboard from "./components/Dashboard.jsx";
-import { ROOMS, buildInitialBookings } from "./data/mockData.js";
+import { ROOMS } from "./data/mockData.js";
 import { supabase } from "./lib/supabaseClient.js";
+import { fetchBookings, insertBooking, deleteBooking } from "./lib/bookingsApi.js";
 
 const SESSION_KEY = "mrb_current_user";
 
@@ -19,13 +20,22 @@ export default function App() {
     const saved = localStorage.getItem(SESSION_KEY);
     return saved ? JSON.parse(saved) : null;
   });
-  const [bookings, setBookings] = useState(() => buildInitialBookings());
+  const [bookings, setBookings] = useState([]);
+  const [bookingsLoading, setBookingsLoading] = useState(true);
 
   const rooms = useMemo(() => ROOMS, []);
 
   useEffect(() => {
     if (currentUser) localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
     else localStorage.removeItem(SESSION_KEY);
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (!currentUser) return;
+    setBookingsLoading(true);
+    fetchBookings()
+      .then(setBookings)
+      .finally(() => setBookingsLoading(false));
   }, [currentUser]);
 
   async function handleStudentRegister(studentId, password) {
@@ -63,11 +73,13 @@ export default function App() {
     setCurrentUser(null);
   }
 
-  function addBooking(booking) {
-    setBookings((prev) => [...prev, booking]);
+  async function addBooking(booking) {
+    const saved = await insertBooking(booking);
+    setBookings((prev) => [...prev, saved]);
   }
 
-  function cancelBooking(bookingId) {
+  async function cancelBooking(bookingId) {
+    await deleteBooking(bookingId);
     setBookings((prev) => prev.filter((b) => b.id !== bookingId));
   }
 
@@ -76,6 +88,8 @@ export default function App() {
       <LoginScreen onStudentLogin={handleStudentLogin} onStudentRegister={handleStudentRegister} />
     );
   }
+
+  if (bookingsLoading) return null;
 
   return (
     <Dashboard

@@ -2,10 +2,6 @@ import { useState } from "react";
 import { findConflict } from "../utils/timeConflict.js";
 import { todayISO } from "../utils/thaiDate.js";
 
-function newId() {
-  return typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `bk-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-}
-
 export default function BookingModal({ rooms, bookings, user, initialRoomId, onClose, onSubmit }) {
   const [roomId, setRoomId] = useState(initialRoomId || "");
   const [date, setDate] = useState(todayISO());
@@ -14,6 +10,7 @@ export default function BookingModal({ rooms, bookings, user, initialRoomId, onC
   const [people, setPeople] = useState("");
   const [purpose, setPurpose] = useState("");
   const [submitError, setSubmitError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const selectedRoom = rooms.find((r) => r.id === roomId) || null;
   const timesFilled = Boolean(roomId && date && start && end);
@@ -39,7 +36,7 @@ export default function BookingModal({ rooms, bookings, user, initialRoomId, onC
     }
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
 
     if (!roomId || !date || !start || !end) {
@@ -60,18 +57,23 @@ export default function BookingModal({ rooms, bookings, user, initialRoomId, onC
     }
 
     setSubmitError("");
-    onSubmit({
-      id: newId(),
-      roomId,
-      date,
-      start,
-      end,
-      people: people ? Number(people) : null,
-      purpose: purpose.trim(),
-      ownerId: user.id,
-      ownerName: user.name,
-      status: selectedRoom.requiresApproval ? "pending" : "approved",
-    });
+    setSubmitting(true);
+    try {
+      await onSubmit({
+        roomId,
+        date,
+        start,
+        end,
+        people: people ? Number(people) : null,
+        purpose: purpose.trim(),
+        ownerId: user.id,
+        ownerName: user.name,
+        status: selectedRoom.requiresApproval ? "pending" : "approved",
+      });
+    } catch {
+      setSubmitting(false);
+      setSubmitError("บันทึกการจองไม่สำเร็จ ลองใหม่อีกครั้ง");
+    }
   }
 
   return (
@@ -142,8 +144,8 @@ export default function BookingModal({ rooms, bookings, user, initialRoomId, onC
             <button type="button" className="btn" onClick={onClose}>
               ยกเลิก
             </button>
-            <button type="submit" className="btn primary">
-              ยืนยันการจอง
+            <button type="submit" className="btn primary" disabled={submitting}>
+              {submitting ? "กำลังบันทึก..." : "ยืนยันการจอง"}
             </button>
           </div>
         </form>
