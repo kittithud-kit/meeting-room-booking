@@ -2,7 +2,7 @@ import { useState } from "react";
 
 const SCHOOL_LINE_ID = "@school.booking";
 
-export default function LoginScreen({ onStudentLogin, onStudentRegister }) {
+export default function LoginScreen({ onStudentLogin, onStudentRegister, onRequestPasswordReset }) {
   const [mode, setMode] = useState("login"); // "login" | "register"
   const [studentId, setStudentId] = useState("");
   const [password, setPassword] = useState("");
@@ -10,6 +10,31 @@ export default function LoginScreen({ onStudentLogin, onStudentRegister }) {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotStudentId, setForgotStudentId] = useState("");
+  const [forgotError, setForgotError] = useState("");
+  const [forgotSubmitting, setForgotSubmitting] = useState(false);
+  const [forgotSent, setForgotSent] = useState(false);
+
+  function openForgotModal() {
+    setForgotStudentId("");
+    setForgotError("");
+    setForgotSent(false);
+    setShowForgotModal(true);
+  }
+
+  async function handleForgotSubmit(e) {
+    e.preventDefault();
+    if (!forgotStudentId.trim()) {
+      setForgotError("กรอกรหัสประจำตัวนักเรียนก่อน");
+      return;
+    }
+    setForgotError("");
+    setForgotSubmitting(true);
+    const requestError = await onRequestPasswordReset(forgotStudentId.trim());
+    setForgotSubmitting(false);
+    if (requestError) setForgotError(requestError);
+    else setForgotSent(true);
+  }
 
   function switchMode(nextMode) {
     setMode(nextMode);
@@ -147,7 +172,7 @@ export default function LoginScreen({ onStudentLogin, onStudentRegister }) {
         )}
 
         {mode === "login" && (
-          <button type="button" className="forgot-password-link" onClick={() => setShowForgotModal(true)}>
+          <button type="button" className="forgot-password-link" onClick={openForgotModal}>
             ลืมรหัสผ่าน?
           </button>
         )}
@@ -169,18 +194,52 @@ export default function LoginScreen({ onStudentLogin, onStudentRegister }) {
                 ✕
               </button>
             </div>
-            <p className="modal-sub">
-              ติดต่อแอดมินโรงเรียนผ่าน LINE เพื่อขอรีเซ็ตรหัสผ่าน
+            {forgotSent ? (
+              <>
+                <p className="modal-sub">
+                  ส่งคำขอเรียบร้อยแล้ว รอแอดมินอนุมัติคำขอนี้ก่อน จึงจะตั้งรหัสผ่านใหม่ได้ที่แท็บ
+                  "ตั้งรหัสผ่านครั้งแรก"
+                </p>
+                <div className="modal-actions">
+                  <button type="button" className="btn primary" onClick={() => setShowForgotModal(false)}>
+                    ปิด
+                  </button>
+                </div>
+              </>
+            ) : (
+              <form onSubmit={handleForgotSubmit} noValidate>
+                <p className="modal-sub">
+                  กรอกรหัสประจำตัวนักเรียน ระบบจะส่งคำขอไปให้แอดมินอนุมัติเพื่อรีเซ็ตรหัสผ่านให้
+                </p>
+                <label htmlFor="forgotStudentId">รหัสประจำตัวนักเรียน</label>
+                <input
+                  id="forgotStudentId"
+                  type="text"
+                  placeholder="เช่น 66001"
+                  value={forgotStudentId}
+                  onChange={(e) => setForgotStudentId(e.target.value)}
+                />
+
+                {forgotError && <p className="field-error">{forgotError}</p>}
+
+                <div className="modal-actions">
+                  <button type="button" className="btn" onClick={() => setShowForgotModal(false)}>
+                    ยกเลิก
+                  </button>
+                  <button type="submit" className="btn primary" disabled={forgotSubmitting}>
+                    {forgotSubmitting ? "กำลังส่ง..." : "ส่งคำขอ"}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            <p className="forgot-line-fallback">
+              หรือทัก LINE แอดมินโดยตรงที่{" "}
+              <span className="forgot-line-id">
+                <span className="dot-icon dot-line" aria-hidden="true" />
+                {SCHOOL_LINE_ID}
+              </span>
             </p>
-            <div className="forgot-line-id">
-              <span className="dot-icon dot-line" aria-hidden="true" />
-              {SCHOOL_LINE_ID}
-            </div>
-            <div className="modal-actions">
-              <button type="button" className="btn primary" onClick={() => setShowForgotModal(false)}>
-                ปิด
-              </button>
-            </div>
           </div>
         </div>
       )}

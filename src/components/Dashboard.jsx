@@ -10,11 +10,14 @@ export default function Dashboard({
   user,
   rooms,
   bookings,
+  resetRequests,
   onLogout,
   onAddBooking,
   onCancelBooking,
   onApproveBooking,
   onRejectBooking,
+  onApproveReset,
+  onRejectReset,
 }) {
   const [modalRoomId, setModalRoomId] = useState(null); // null when closed, "" or roomId when open
   const isModalOpen = modalRoomId !== null;
@@ -53,7 +56,15 @@ export default function Dashboard({
       <MyBookings bookings={bookings} rooms={rooms} userId={user.id} onCancel={onCancelBooking} />
 
       {user.isAdmin && (
-        <AdminPanel bookings={bookings} rooms={rooms} onApprove={onApproveBooking} onReject={onRejectBooking} />
+        <AdminPanel
+          bookings={bookings}
+          rooms={rooms}
+          onApprove={onApproveBooking}
+          onReject={onRejectBooking}
+          resetRequests={resetRequests}
+          onApproveReset={onApproveReset}
+          onRejectReset={onRejectReset}
+        />
       )}
 
       {isModalOpen && (

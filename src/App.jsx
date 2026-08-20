@@ -4,6 +4,12 @@ import Dashboard from "./components/Dashboard.jsx";
 import { ROOMS } from "./data/mockData.js";
 import { supabase } from "./lib/supabaseClient.js";
 import { fetchBookings, insertBooking, deleteBooking, approveBooking } from "./lib/bookingsApi.js";
+import {
+  requestPasswordReset,
+  fetchPasswordResetRequests,
+  approvePasswordReset,
+  rejectPasswordReset,
+} from "./lib/passwordResetApi.js";
 
 const SESSION_KEY = "mrb_current_user";
 
@@ -23,6 +29,7 @@ export default function App() {
   });
   const [bookings, setBookings] = useState([]);
   const [bookingsLoading, setBookingsLoading] = useState(true);
+  const [resetRequests, setResetRequests] = useState([]);
 
   const rooms = useMemo(() => ROOMS, []);
 
@@ -37,6 +44,11 @@ export default function App() {
     fetchBookings()
       .then(setBookings)
       .finally(() => setBookingsLoading(false));
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (!currentUser?.isAdmin) return;
+    fetchPasswordResetRequests().then(setResetRequests);
   }, [currentUser]);
 
   async function handleStudentRegister(studentId, password) {
@@ -74,6 +86,20 @@ export default function App() {
     setCurrentUser(null);
   }
 
+  async function handleRequestPasswordReset(studentId) {
+    return requestPasswordReset(studentId);
+  }
+
+  async function approveReset(requestId) {
+    await approvePasswordReset(requestId);
+    setResetRequests((prev) => prev.filter((r) => r.id !== requestId));
+  }
+
+  async function rejectReset(requestId) {
+    await rejectPasswordReset(requestId);
+    setResetRequests((prev) => prev.filter((r) => r.id !== requestId));
+  }
+
   async function addBooking(booking) {
     const saved = await insertBooking(booking);
     setBookings((prev) => [...prev, saved]);
@@ -96,7 +122,11 @@ export default function App() {
 
   if (!currentUser) {
     return (
-      <LoginScreen onStudentLogin={handleStudentLogin} onStudentRegister={handleStudentRegister} />
+      <LoginScreen
+        onStudentLogin={handleStudentLogin}
+        onStudentRegister={handleStudentRegister}
+        onRequestPasswordReset={handleRequestPasswordReset}
+      />
     );
   }
 
@@ -107,11 +137,14 @@ export default function App() {
       user={currentUser}
       rooms={rooms}
       bookings={bookings}
+      resetRequests={resetRequests}
       onLogout={handleLogout}
       onAddBooking={addBooking}
       onCancelBooking={cancelBooking}
       onApproveBooking={approveBookingRequest}
       onRejectBooking={rejectBookingRequest}
+      onApproveReset={approveReset}
+      onRejectReset={rejectReset}
     />
   );
 }
