@@ -3,9 +3,19 @@ import Header from "./Header.jsx";
 import RoomCard from "./RoomCard.jsx";
 import Timeline from "./Timeline.jsx";
 import MyBookings from "./MyBookings.jsx";
+import AdminPanel from "./AdminPanel.jsx";
 import BookingModal from "./BookingModal.jsx";
 
-export default function Dashboard({ user, rooms, bookings, onLogout, onAddBooking, onCancelBooking }) {
+export default function Dashboard({
+  user,
+  rooms,
+  bookings,
+  onLogout,
+  onAddBooking,
+  onCancelBooking,
+  onApproveBooking,
+  onRejectBooking,
+}) {
   const [modalRoomId, setModalRoomId] = useState(null); // null when closed, "" or roomId when open
   const isModalOpen = modalRoomId !== null;
 
@@ -41,6 +51,10 @@ export default function Dashboard({ user, rooms, bookings, onLogout, onAddBookin
       <Timeline rooms={rooms} bookings={bookings} />
 
       <MyBookings bookings={bookings} rooms={rooms} userId={user.id} onCancel={onCancelBooking} />
+
+      {user.isAdmin && (
+        <AdminPanel bookings={bookings} rooms={rooms} onApprove={onApproveBooking} onReject={onRejectBooking} />
+      )}
 
       {isModalOpen && (
         <BookingModal

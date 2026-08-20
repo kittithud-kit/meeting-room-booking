@@ -3,7 +3,7 @@ import LoginScreen from "./components/LoginScreen.jsx";
 import Dashboard from "./components/Dashboard.jsx";
 import { ROOMS } from "./data/mockData.js";
 import { supabase } from "./lib/supabaseClient.js";
-import { fetchBookings, insertBooking, deleteBooking } from "./lib/bookingsApi.js";
+import { fetchBookings, insertBooking, deleteBooking, approveBooking } from "./lib/bookingsApi.js";
 
 const SESSION_KEY = "mrb_current_user";
 
@@ -12,6 +12,7 @@ function studentToUser(row) {
     id: row.id,
     name: `${row.first_name} ${row.last_name}`,
     studentId: row.student_id,
+    isAdmin: row.is_admin,
   };
 }
 
@@ -83,6 +84,16 @@ export default function App() {
     setBookings((prev) => prev.filter((b) => b.id !== bookingId));
   }
 
+  async function approveBookingRequest(bookingId) {
+    const updated = await approveBooking(bookingId);
+    setBookings((prev) => prev.map((b) => (b.id === bookingId ? updated : b)));
+  }
+
+  async function rejectBookingRequest(bookingId) {
+    await deleteBooking(bookingId);
+    setBookings((prev) => prev.filter((b) => b.id !== bookingId));
+  }
+
   if (!currentUser) {
     return (
       <LoginScreen onStudentLogin={handleStudentLogin} onStudentRegister={handleStudentRegister} />
@@ -99,6 +110,8 @@ export default function App() {
       onLogout={handleLogout}
       onAddBooking={addBooking}
       onCancelBooking={cancelBooking}
+      onApproveBooking={approveBookingRequest}
+      onRejectBooking={rejectBookingRequest}
     />
   );
 }
