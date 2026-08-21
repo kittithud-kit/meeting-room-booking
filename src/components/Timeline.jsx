@@ -66,31 +66,33 @@ export default function Timeline({ rooms, bookings }) {
         </div>
       </div>
       <div className="card timeline-card">
-        {rooms.map((room) => (
-          <div className="tl-row" key={room.id}>
-            <span className="tl-label">{room.name}</span>
-            <div className="tl-bars">
-              {HOURS.map((hour) => {
-                const state = blockStateForHour(room, hour, dayBookings);
-                return (
-                  <div
-                    key={hour}
-                    className={`tl-slot tl-slot-${state}`}
-                    title={`${room.name} · ${hourLabel(hour)}`}
-                  />
-                );
-              })}
+        <div className="tl-scroll">
+          {rooms.map((room) => (
+            <div className="tl-row" key={room.id}>
+              <span className="tl-label">{room.name}</span>
+              <div className="tl-bars">
+                {HOURS.map((hour) => {
+                  const state = blockStateForHour(room, hour, dayBookings);
+                  return (
+                    <div
+                      key={hour}
+                      className={`tl-slot tl-slot-${state}`}
+                      title={`${room.name} · ${hourLabel(hour)}`}
+                    />
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ))}
-
-        <div className="tl-hours">
-          <span />
-          {HOURS.map((hour) => (
-            <span className="tl-hour" key={hour}>
-              {hourLabel(hour)}
-            </span>
           ))}
+
+          <div className="tl-hours">
+            <span />
+            {HOURS.map((hour) => (
+              <span className="tl-hour" key={hour}>
+                {hourLabel(hour)}
+              </span>
+            ))}
+          </div>
         </div>
 
         <div className="legend">

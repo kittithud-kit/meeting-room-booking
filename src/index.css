@@ -33,6 +33,7 @@ body {
   color: var(--text-primary);
   font-family: "Noto Sans Thai", "Noto Sans", system-ui, sans-serif;
   line-height: 1.6;
+  overflow-x: hidden;
 }
 
 h1 {
@@ -461,12 +462,17 @@ textarea {
   margin-bottom: 32px;
 }
 
+.tl-scroll {
+  overflow-x: auto;
+}
+
 .tl-row {
   display: grid;
   grid-template-columns: 140px 1fr;
   align-items: center;
   gap: 14px;
   padding: 7px 0;
+  min-width: 600px;
 }
 
 .tl-label {
@@ -499,6 +505,7 @@ textarea {
   grid-template-columns: 140px repeat(10, 1fr);
   gap: 3px 14px;
   margin-top: 4px;
+  min-width: 600px;
 }
 
 .tl-hour {
