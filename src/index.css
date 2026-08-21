@@ -47,6 +47,17 @@ h2.section-title {
   margin: 0 0 14px;
 }
 
+.section-head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.section-head-row .section-title {
+  margin-bottom: 0;
+}
+
 p {
   margin: 0;
 }
@@ -572,6 +583,24 @@ textarea {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.room-manage-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.checkbox-row {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.checkbox-row input[type="checkbox"] {
+  width: auto;
+  margin: 0;
 }
 
 .my-booking-cancel {

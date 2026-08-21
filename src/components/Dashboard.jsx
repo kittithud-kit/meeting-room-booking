@@ -18,6 +18,9 @@ export default function Dashboard({
   onRejectBooking,
   onApproveReset,
   onRejectReset,
+  onAddRoom,
+  onUpdateRoom,
+  onDeleteRoom,
 }) {
   const [modalRoomId, setModalRoomId] = useState(null); // null when closed, "" or roomId when open
   const isModalOpen = modalRoomId !== null;
@@ -64,6 +67,9 @@ export default function Dashboard({
           resetRequests={resetRequests}
           onApproveReset={onApproveReset}
           onRejectReset={onRejectReset}
+          onAddRoom={onAddRoom}
+          onUpdateRoom={onUpdateRoom}
+          onDeleteRoom={onDeleteRoom}
         />
       )}
 

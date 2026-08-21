@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import LoginScreen from "./components/LoginScreen.jsx";
 import Dashboard from "./components/Dashboard.jsx";
-import { ROOMS } from "./data/mockData.js";
 import { supabase } from "./lib/supabaseClient.js";
 import { fetchBookings, insertBooking, deleteBooking, approveBooking } from "./lib/bookingsApi.js";
 import {
@@ -10,6 +9,7 @@ import {
   approvePasswordReset,
   rejectPasswordReset,
 } from "./lib/passwordResetApi.js";
+import { fetchRooms, insertRoom, updateRoom, deleteRoom } from "./lib/roomsApi.js";
 
 const SESSION_KEY = "mrb_current_user";
 
@@ -30,8 +30,8 @@ export default function App() {
   const [bookings, setBookings] = useState([]);
   const [bookingsLoading, setBookingsLoading] = useState(true);
   const [resetRequests, setResetRequests] = useState([]);
-
-  const rooms = useMemo(() => ROOMS, []);
+  const [rooms, setRooms] = useState([]);
+  const [roomsLoading, setRoomsLoading] = useState(true);
 
   useEffect(() => {
     if (currentUser) localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
@@ -44,6 +44,14 @@ export default function App() {
     fetchBookings()
       .then(setBookings)
       .finally(() => setBookingsLoading(false));
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (!currentUser) return;
+    setRoomsLoading(true);
+    fetchRooms()
+      .then(setRooms)
+      .finally(() => setRoomsLoading(false));
   }, [currentUser]);
 
   useEffect(() => {
@@ -120,6 +128,21 @@ export default function App() {
     setBookings((prev) => prev.filter((b) => b.id !== bookingId));
   }
 
+  async function addRoom(room) {
+    const saved = await insertRoom(room);
+    setRooms((prev) => [...prev, saved]);
+  }
+
+  async function editRoom(roomId, room) {
+    const saved = await updateRoom(roomId, room);
+    setRooms((prev) => prev.map((r) => (r.id === roomId ? saved : r)));
+  }
+
+  async function removeRoom(roomId) {
+    await deleteRoom(roomId);
+    setRooms((prev) => prev.filter((r) => r.id !== roomId));
+  }
+
   if (!currentUser) {
     return (
       <LoginScreen
@@ -130,7 +153,7 @@ export default function App() {
     );
   }
 
-  if (bookingsLoading) return null;
+  if (bookingsLoading || roomsLoading) return null;
 
   return (
     <Dashboard
@@ -145,6 +168,9 @@ export default function App() {
       onRejectBooking={rejectBookingRequest}
       onApproveReset={approveReset}
       onRejectReset={rejectReset}
+      onAddRoom={addRoom}
+      onUpdateRoom={editRoom}
+      onDeleteRoom={removeRoom}
     />
   );
 }
